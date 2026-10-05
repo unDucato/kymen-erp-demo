@@ -1,0 +1,166 @@
+/* Live fleet tracker (ERP Dashboard). Использует переменные из style.css. */
+
+.tracker-panel {
+  --st-moving: var(--accent);
+  --st-idle: var(--orange);
+  --st-parked: #8b93a1;
+  --st-offline: var(--red-hover);
+}
+
+.tracker-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.live-chip { text-transform: uppercase; letter-spacing: 0.08em; }
+.live-chip.is-offline { color: var(--muted); background: var(--inset); border-color: var(--border); }
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--st-moving);
+  box-shadow: 0 0 0 0 rgba(0, 179, 78, 0.55);
+  animation: live-pulse 1.6s ease-out infinite;
+}
+.live-chip.is-offline .live-dot { background: var(--st-parked); animation: none; box-shadow: none; }
+@keyframes live-pulse {
+  70% { box-shadow: 0 0 0 7px rgba(0, 179, 78, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 179, 78, 0); }
+}
+
+.tracker-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.tracker-map-wrap {
+  position: relative;
+  height: 440px; /* ЯВНО задаем высоту родителю */
+  min-height: 440px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--inset);
+}
+
+#tracker-map,
+.tracker-map {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.tracker-legend {
+  position: absolute; left: 10px; top: 10px; z-index: 2;
+  display: flex; flex-wrap: wrap; gap: 6px;
+  max-width: calc(100% - 70px);
+  pointer-events: none;
+}
+.legend-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 9px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; color: var(--text);
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(6px);
+}
+.legend-item i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.legend-item b { color: var(--muted); font-weight: 700; }
+
+.tracker-note {
+  position: absolute; left: 10px; bottom: 28px; z-index: 2;
+  margin: 0; padding: 6px 10px; max-width: calc(100% - 20px);
+  font-size: 11px; line-height: 1.4; color: var(--muted);
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+  border: 1px solid var(--border); border-radius: 10px;
+  pointer-events: none;
+}
+.tracker-note span { display: block; }
+
+/* ----- список техники ----- */
+.tracker-list {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 440px; overflow-y: auto;
+}
+.unit-row {
+  display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 12px; align-items: center;
+  width: 100%; text-align: left; cursor: pointer;
+  padding: 10px 12px; color: var(--text);
+  background: var(--inset); border: 1px solid var(--border); border-radius: 12px;
+  font: inherit; transition: border-color .2s ease, background .2s ease;
+}
+.unit-row:hover { border-color: var(--green); }
+.unit-row.is-selected { border-color: var(--accent); background: var(--green-soft); }
+.unit-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.unit-ico {
+  width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+  color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); font-size: 15px;
+}
+.unit-main { min-width: 0; }
+.unit-main b { display: block; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.unit-main small { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+.unit-side { text-align: right; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.unit-side strong { display: block; color: var(--text); font-size: 13px; }
+.unit-state {
+  display: inline-flex; align-items: center; gap: 5px; font-weight: 700; color: var(--c);
+}
+.unit-state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+.warn-fuel { color: var(--orange); font-weight: 700; }
+
+.st-moving  { --c: var(--st-moving); }
+.st-idle    { --c: var(--st-idle); }
+.st-parked  { --c: var(--st-parked); }
+.st-offline { --c: var(--st-offline); }
+
+/* ----- маркеры на карте ----- */
+/* Внешний элемент двигает MapLibre через transform, поэтому все эффекты только на вложенном .unit-pin */
+.unit-marker { cursor: pointer; width: 36px; height: 36px; }
+.unit-pin {
+  position: relative; width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 14px; color: #fff;
+  background: var(--c); border: 3px solid var(--card);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: background .3s ease, transform .15s ease;
+}
+.unit-marker:hover .unit-pin, .unit-marker.is-selected .unit-pin { transform: scale(1.14); }
+.unit-marker.is-selected .unit-pin { box-shadow: 0 0 0 3px var(--c), 0 4px 12px rgba(0, 0, 0, 0.4); }
+.unit-marker.st-moving .unit-pin::after {
+  content: ""; position: absolute; inset: -6px; border-radius: 50%;
+  border: 2px solid var(--c); opacity: 0; animation: unit-ring 1.8s ease-out infinite;
+}
+.unit-marker.st-offline .unit-pin { opacity: .8; }
+@keyframes unit-ring { from { opacity: .7; transform: scale(.8); } to { opacity: 0; transform: scale(1.35); } }
+
+/* ----- попап ----- */
+.tracker-map .maplibregl-popup-content {
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--border); border-radius: 12px;
+  padding: 12px 14px; min-width: 210px; box-shadow: var(--shadow);
+  font-family: var(--font); font-size: 12px;
+}
+.tracker-map .maplibregl-popup-close-button { color: var(--muted); font-size: 18px; padding: 2px 8px; }
+.tracker-map [class*="maplibregl-popup-anchor-top"]    .maplibregl-popup-tip { border-bottom-color: var(--card); }
+.tracker-map [class*="maplibregl-popup-anchor-bottom"] .maplibregl-popup-tip { border-top-color: var(--card); }
+.tracker-map .maplibregl-popup-anchor-left  .maplibregl-popup-tip { border-right-color: var(--card); }
+.tracker-map .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--card); }
+.pop-title { margin: 0 18px 2px 0; font-size: 13px; font-weight: 700; }
+.pop-sub { margin: 0 0 10px; color: var(--muted); }
+.pop-grid { display: grid; grid-template-columns: auto 1fr; gap: 5px 14px; margin: 0; }
+.pop-grid dt { color: var(--muted); }
+.pop-grid dd { margin: 0; text-align: right; font-weight: 600; }
+
+@media (max-width: 920px) {
+  .tracker-layout { grid-template-columns: 1fr; }
+  .tracker-map-wrap { min-height: 360px; }
+  .tracker-list { max-height: none; }
+}
+@media (max-width: 640px) {
+  .tracker-map-wrap { min-height: 320px; }
+  .tracker-legend { max-width: calc(100% - 20px); }
+  .tracker-note { bottom: 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot, .unit-marker.st-moving .unit-pin::after { animation: none; }
+}

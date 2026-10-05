@@ -104,6 +104,26 @@
     ["Transmission repair", "Vaihteiston korjaus", "Ремонт трансмиссии"],
     ["Boom cylinder reseal", "Puomisylinterin tiivistys", "Замена уплотнений цилиндра стрелы"],
     ["Brake system overhaul", "Jarrujärjestelmän kunnostus", "Капитальный ремонт тормозной системы"],
+    ["Live fleet tracker", "Kaluston reaaliaikaseuranta", "Трекер техники в реальном времени"],
+    ["Real-time position and status of IoT-equipped machines.", "IoT-laitteilla varustettujen koneiden sijainti ja tila reaaliajassa.", "Положение и статус техники с IoT-датчиками в реальном времени."],
+    ["Fit all", "Näytä kaikki", "Показать все"],
+    ["Fleet map", "Kalustokartta", "Карта парка"],
+    ["Moving", "Liikkeessä", "В движении"],
+    ["Idling", "Tyhjäkäynnillä", "На холостом ходу"],
+    ["Parked", "Pysäköity", "Стоит на стоянке"],
+    ["Offline", "Ei yhteyttä", "Нет связи"],
+    ["Speed", "Nopeus", "Скорость"],
+    ["Fuel", "Polttoaine", "Топливо"],
+    ["Last update", "Viimeisin päivitys", "Последнее обновление"],
+    ["km/h", "km/h", "км/ч"],
+    ["Low fuel", "Polttoaine vähissä", "Мало топлива"],
+    ["just now", "juuri nyt", "только что"],
+    ["{n} s ago", "{n} s sitten", "{n} с назад"],
+    ["{n} min ago", "{n} min sitten", "{n} мин назад"],
+    ["Demo data: telemetry is simulated.", "Demodata: telemetria on simuloitua.", "Демо-данные: телеметрия симулируется."],
+    ["Demo basemap: MapTiler key not found in tokens.env.", "Demo-peruskartta: MapTiler-avainta ei löytynyt tiedostosta tokens.env.", "Демо-подложка: ключ MapTiler не найден в tokens.env."],
+    ["Map library failed to load. Check the maplibre-gl script in index.html.", "Karttakirjastoa ei voitu ladata. Tarkista maplibre-gl-skripti tiedostossa index.html.", "Библиотека карты не загрузилась. Проверьте скрипт maplibre-gl в index.html."],
+    ["Map failed to load", "Karttaa ei voitu ladata", "Не удалось загрузить карту"],
   ];
 
   const I18N = { fi: {}, ru: {} };
@@ -185,4 +205,3 @@
 
   window.Prefs = { t, locale: () => LOCALES[lang], onChange: (fn) => listeners.push(fn) };
 })();
-
