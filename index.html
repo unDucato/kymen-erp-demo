@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1115" />
+  <title>Kymen Trukkipalvelu 2.0 - Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <script>
+
+    try { document.documentElement.dataset.theme = localStorage.getItem("ktp-theme") === "light" ? "light" : "dark"; } catch (e) {}
+  </script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <i class="fa-solid fa-industry"></i>
+        </div>
+        <div>
+          <p class="brand-kicker" data-i18n="brand.kicker">Heavy machinery rental</p>
+          <h1>Kymen Trukkipalvelu <span>2.0</span> - Portal</h1>
+        </div>
+      </div>
+
+      <nav class="view-toggle" role="tablist" data-i18n-aria="nav.views" aria-label="Dashboard views">
+        <button
+          type="button"
+          class="toggle-btn is-active"
+          id="btn-client"
+          data-view="client"
+          role="tab"
+          aria-selected="true"
+        >
+          <i class="fa-solid fa-building"></i>
+          <span data-i18n="nav.client">Client Portal</span>
+        </button>
+        <button
+          type="button"
+          class="toggle-btn"
+          id="btn-erp"
+          data-view="erp"
+          role="tab"
+          aria-selected="false"
+        >
+          <i class="fa-solid fa-chart-line"></i>
+          <span data-i18n="nav.erp">Internal ERP</span>
+        </button>
+      </nav>
+
+      <div class="session">
+        <div class="prefs">
+          <div class="lang-toggle" role="group" aria-label="Language">
+            <button type="button" class="lang-btn is-active" data-lang="en">EN</button>
+            <button type="button" class="lang-btn" data-lang="fi">FI</button>
+            <button type="button" class="lang-btn" data-lang="ru">RU</button>
+          </div>
+          <button type="button" class="icon-btn theme-btn" id="theme-toggle" aria-label="Switch theme">
+            <i class="fa-solid fa-sun" id="theme-icon"></i>
+          </button>
+        </div>
+        <div class="session-copy">
+          <p class="session-name" id="session-name">Stora Enso</p>
+          <p class="session-role" id="session-role">Client account</p>
+        </div>
+        <div class="avatar" id="session-avatar">SE</div>
+      </div>
+    </header>
+
+    <main>
+      <section id="view-client" class="view is-visible" role="tabpanel">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow" data-i18n="client.eyebrow">Client portal · Anjalankoski mill</p>
+            <h2 data-i18n="client.title">Welcome back, Stora Enso Anjalankoski</h2>
+            <p class="lede" data-i18n="client.lede">Live status of your contracted fleet, hours to service, and on-site support.</p>
+          </div>
+          <button type="button" class="sos-btn" id="sos-open">
+            <span class="sos-pulse"></span>
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span data-i18n="client.sos">SOS / Report Breakdown</span>
+          </button>
+        </div>
+
+        <div class="subtabs" role="tablist">
+          <button type="button" class="subtab is-active" data-ctab="fleet"><i class="fa-solid fa-truck-ramp-box"></i> Active fleet</button>
+          <button type="button" class="subtab" data-ctab="invoices"><i class="fa-solid fa-file-invoice-dollar"></i> Invoices</button>
+          <button type="button" class="subtab" data-ctab="orders"><i class="fa-solid fa-clock-rotate-left"></i> Order History</button>
+        </div>
+        <div class="ctab is-visible" id="ctab-fleet">
+        <section class="panel">
+          <div class="panel-head">
+            <h3 data-i18n="client.fleet">Active fleet</h3>
+            <span class="chip"><i class="fa-solid fa-circle-check"></i> <span data-i18n="client.units">2 units on site</span></span>
+          </div>
+          <div class="fleet-grid" id="fleet-grid"></div>
+        </section>
+        </div>
+        <div class="ctab" id="ctab-invoices">
+          <section class="panel">
+            <div class="panel-head"><h3>Invoices</h3><span class="chip chip-muted">Stora Enso Anjalankoski</span></div>
+            <div class="table-wrap"><table class="data-table"><thead><tr><th>Invoice</th><th>Date</th><th>Description</th><th>Amount (VAT 0%)</th><th>Status</th><th></th></tr></thead><tbody id="invoice-tbody"></tbody></table></div>
+          </section>
+        </div>
+        <div class="ctab" id="ctab-orders">
+          <section class="panel">
+            <div class="panel-head"><h3>Order history</h3><span class="chip chip-muted">Last 6 months</span></div>
+            <div class="table-wrap"><table class="data-table"><thead><tr><th>Order</th><th>Date</th><th>Machine</th><th>Period</th><th>Status</th><th></th></tr></thead><tbody id="order-tbody"></tbody></table></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="view-erp" class="view" hidden role="tabpanel">
+        <div class="erp-layout">
+          <aside class="sidebar" aria-label="ERP modules">
+            <p class="sidebar-label">Modules</p>
+            <button type="button" class="side-btn is-active" data-tab="dashboard"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></button>
+            <button type="button" class="side-btn" data-tab="fleet"><i class="fa-solid fa-tractor"></i><span>Fleet Passport</span></button>
+            <button type="button" class="side-btn" data-tab="mechanics"><i class="fa-solid fa-wrench"></i><span>Mechanics &amp; Tasks</span></button>
+            <button type="button" class="side-btn" data-tab="accounting"><i class="fa-solid fa-euro-sign"></i><span>Accounting</span><em>Procountor / Netvisor</em></button>
+            <button type="button" class="side-btn ai" data-tab="ai"><i class="fa-solid fa-wand-magic-sparkles"></i><span>AI Insights</span><b>NEW</b></button>
+          </aside>
+          <div class="erp-main">
+          <div id="erp-tab-dashboard" class="erp-tab is-visible">
+        <div class="page-head">
+          <div>
+            <p class="eyebrow" data-i18n="erp.eyebrow">Internal ERP · Operations</p>
+            <h2 data-i18n="erp.title">Manager view — Ville</h2>
+            <p class="lede" data-i18n="erp.lede">Utilization, revenue, and zombie-asset risk across the Kymen fleet.</p>
+          </div>
+          <div class="period-pill">
+            <i class="fa-regular fa-calendar"></i>
+            <span data-i18n="erp.period">FY 2026 · Apr–Sep</span>
+          </div>
+        </div>
+
+        <div class="kpi-row" id="kpi-row"></div>
+
+        <section class="panel chart-panel">
+          <div class="panel-head">
+            <h3 data-i18n="erp.chart">Utilization growth over 6 months</h3>
+            <span class="chip chip-muted" data-i18n="erp.average">Fleet average</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="utilization-chart"></canvas>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h3 data-i18n="erp.roi">ROI &amp; zombie tracker</h3>
+              <p class="panel-sub" data-i18n="erp.roiSub">Assets with maintenance cost exceeding rental yield are flagged for disposal.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-i18n="table.id">ID</th>
+                  <th data-i18n="table.model">Model</th>
+                  <th data-i18n="table.status">Status</th>
+                  <th data-i18n="table.revenue">Revenue YTD</th>
+                  <th data-i18n="table.maint">Maint. Cost YTD</th>
+                  <th data-i18n="table.roi">ROI Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="roi-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+          </div>
+          <div id="erp-tab-placeholder" class="erp-tab"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="sos-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sos-title">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow danger" data-i18n="sos.eyebrow">Priority dispatch</p>
+          <h3 id="sos-title" data-i18n="sos.title">Report breakdown</h3>
+        </div>
+        <button type="button" class="icon-btn" id="sos-close" data-i18n-aria="sos.close" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form id="sos-form">
+        <label>
+          <span data-i18n="sos.machine">Machine on site</span>
+          <select id="sos-machine" required></select>
+        </label>
+        <label>
+          <span data-i18n="sos.issue">Issue description</span>
+          <textarea id="sos-issue" rows="4" required data-i18n-placeholder="sos.placeholder" placeholder="Hydraulic leak on left lift mast, unit stopped at warehouse B…"></textarea>
+        </label>
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" id="sos-photo" accept="image/*" hidden />
+          <i class="fa-solid fa-camera"></i>
+          <p><strong data-i18n="sos.upload">Upload photo</strong></p>
+          <p class="muted" data-i18n="sos.drop">Drop an image or click to browse</p>
+          <p class="file-name" id="file-name"></p>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" id="sos-cancel" data-i18n="sos.cancel">Cancel</button>
+          <button type="submit" class="btn primary" data-i18n="sos.send">Send to dispatch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="passport-modal" hidden>
+    <div class="modal passport" role="dialog" aria-modal="true" aria-labelledby="pp-title">
+      <div class="pp-hero" id="pp-hero">
+        <i class="fa-solid fa-truck-monster" id="pp-icon"></i>
+        <img id="pp-photo" alt="" hidden />
+        <button type="button" class="icon-btn pp-close" id="pp-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        <span class="pp-tag"><i class="fa-solid fa-id-card"></i> Konekortti · Digital machine passport</span>
+      </div>
+      <div class="pp-body" id="pp-body"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="prefs.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
