@@ -1091,9 +1091,48 @@ html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   .pp-stat span { font-size: 11px; }
 }
 
-/* Блокировка прокрутки фона, пока открыта шторка (класс ставит app.js) */
+/* ---------- Шторки: выдвижение, блокировка фона (класс .modal-open ставит app.js) ---------- */
 html.modal-open,
 html.modal-open body { overflow: hidden; }
-html.modal-open body { padding-right: var(--scrollbar-w, 0px); }
+html.modal-open body { position: fixed; left: 0; right: 0; width: 100%; padding-right: var(--scrollbar-w, 0px); }
 .modal-backdrop,
 .modal { overscroll-behavior: contain; }
+
+@keyframes sheet-fade-in { from { opacity: 0; } }
+@keyframes sheet-fade-out { to { opacity: 0; } }
+@keyframes sheet-pop-in { from { opacity: 0; transform: translateY(18px) scale(0.98); } }
+@keyframes sheet-pop-out { to { opacity: 0; transform: translateY(18px) scale(0.98); } }
+@keyframes sheet-slide-in { from { transform: translateY(100%); } }
+@keyframes sheet-slide-out { to { transform: translateY(100%); } }
+
+/* backwards: после анимации inline-transform (свайп) снова работает */
+.modal-backdrop.is-open { animation: sheet-fade-in 0.2s ease-out backwards; }
+.modal-backdrop.is-open .modal { animation: sheet-pop-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.modal-backdrop.is-closing { animation: sheet-fade-out 0.24s ease-in forwards; }
+.modal-backdrop.is-closing .modal { animation: sheet-pop-out 0.24s ease-in forwards; }
+
+@media (max-width: 640px) {
+  .modal-backdrop.is-open .modal { animation: sheet-slide-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+  .modal-backdrop.is-closing .modal { animation: sheet-slide-out 0.24s ease-in forwards; }
+  .modal { position: relative; }
+  /* «ручка» шторки */
+  .modal::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: 40px;
+    height: 4px;
+    margin-left: -20px;
+    border-radius: 999px;
+    background: var(--border-strong);
+    z-index: 3;
+    pointer-events: none;
+  }
+  .modal.passport::before { background: rgba(255, 255, 255, 0.8); box-shadow: 0 0 6px rgba(0, 0, 0, 0.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop.is-open,
+  .modal-backdrop.is-open .modal { animation: none; }
+}

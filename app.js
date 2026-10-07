@@ -264,13 +264,11 @@ function ensureChart() {
 }
 
 function openSos() {
-  els.sosModal.hidden = false;
-  els.sosModal.classList.add("is-open");
+  openSheet(els.sosModal);
 }
 
 function closeSos() {
-  els.sosModal.classList.remove("is-open");
-  els.sosModal.hidden = true;
+  closeSheet(els.sosModal);
 }
 
 function downloadKatsastus(id) {
@@ -467,7 +465,7 @@ function openPassport(id) {
     <div class="modal-actions"><button type="button" class="btn ghost" id="pp-done">Close</button>
       <button type="button" class="btn primary" id="pp-pdf"><i class="fa-solid fa-file-pdf"></i> Export passport PDF</button></div>`;
   const m = document.getElementById("passport-modal");
-  m.hidden = false; m.classList.add("is-open");
+  openSheet(m);
   document.getElementById("pp-done").onclick = closePassport;
   document.getElementById("pp-pdf").onclick = () => openPdf(`Konekortti-${id}.pdf`, `KONEKORTTI ${id}`, [
     `Model: ${p.name} (${p.year})`, `Purchase price: ${money(p.purchase, "en-GB")}`, `Current value: ${money(p.value, "en-GB")}`,
@@ -477,7 +475,7 @@ function openPassport(id) {
 }
 function closePassport() {
   const m = document.getElementById("passport-modal");
-  m.classList.remove("is-open"); m.hidden = true;
+  closeSheet(m);
 }
 document.getElementById("pp-close").addEventListener("click", closePassport);
 document.getElementById("passport-modal").addEventListener("click", (e) => { if (e.target.id === "passport-modal") closePassport(); });
@@ -517,18 +515,125 @@ P.onChange(() => {
   }
 });
 
-// Пока открыта любая шторка (SOS, паспорт техники), фон под ней не скроллится.
-(function lockScrollWhileModalOpen() {
+// ---------- Выдвижные шторки: анимация, свайп вниз, блокировка фона ----------
+const SHEET_MS = 240; // = длительность анимаций .is-closing в style.css
+const sheetMq = window.matchMedia("(max-width: 640px)"); // нижняя шторка (как в CSS)
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+function clearSheetDrag(el) {
+  el.style.opacity = "";
+  el.style.transition = "";
+  const sheet = el.querySelector(".modal");
+  sheet.style.transform = "";
+  sheet.style.transition = "";
+}
+
+function openSheet(el) {
+  window.clearTimeout(el._sheetTimer);
+  el.classList.remove("is-closing");
+  clearSheetDrag(el);
+  el.hidden = false;
+  el.classList.add("is-open");
+}
+
+function closeSheet(el, { instant = false } = {}) {
+  if (!el.classList.contains("is-open") || el.classList.contains("is-closing")) return;
+  const finish = () => {
+    el.classList.remove("is-open", "is-closing");
+    el.hidden = true;
+    clearSheetDrag(el);
+  };
+  if (instant || reduceMotion.matches) return finish();
+  el.classList.add("is-closing");
+  el._sheetTimer = window.setTimeout(finish, SHEET_MS);
+}
+
+(function sheetBehavior() {
   const root = document.documentElement;
-  const backdrops = document.querySelectorAll(".modal-backdrop");
+  const body = document.body;
+  const backdrops = [...document.querySelectorAll(".modal-backdrop")];
+
+  // 1) Фон не скроллится, пока открыта любая шторка.
+  // На iOS overflow:hidden недостаточно, поэтому страницу «приклеиваем» (position:fixed)
+  // и запоминаем позицию скролла, после закрытия возвращаем её.
+  let savedY = 0;
   const sync = () => {
-    const open = [...backdrops].some((b) => b.classList.contains("is-open") && !b.hidden);
+    const open = backdrops.some((b) => b.classList.contains("is-open") && !b.hidden);
     if (open === root.classList.contains("modal-open")) return;
-    // На ПК полоса прокрутки пропадает - компенсируем ширину, чтобы страница не дёргалась.
-    if (open) root.style.setProperty("--scrollbar-w", `${window.innerWidth - root.clientWidth}px`);
-    root.classList.toggle("modal-open", open);
+    if (open) {
+      savedY = window.scrollY;
+      root.style.setProperty("--scrollbar-w", `${window.innerWidth - root.clientWidth}px`);
+      root.classList.add("modal-open");
+      body.style.top = `-${savedY}px`;
+    } else {
+      root.classList.remove("modal-open");
+      body.style.top = "";
+      window.scrollTo(0, savedY);
+    }
   };
   const observer = new MutationObserver(sync);
   backdrops.forEach((b) => observer.observe(b, { attributes: true, attributeFilter: ["class", "hidden"] }));
   sync();
+
+  // 2) Свайп вниз закрывает шторку (только мобильный вид).
+  let drag = null;
+  backdrops.forEach((el) => {
+    const sheet = el.querySelector(".modal");
+
+    el.addEventListener("touchstart", (e) => {
+      if (!sheetMq.matches || e.touches.length !== 1 || el.classList.contains("is-closing")) return;
+      const t = e.touches[0];
+      drag = {
+        y0: t.clientY, y: t.clientY, t: e.timeStamp, v: 0, off: 0, mode: "",
+        skip: !!e.target.closest("textarea, input, select"),
+      };
+    }, { passive: true });
+
+    el.addEventListener("touchmove", (e) => {
+      if (!sheetMq.matches) return;
+      // Касание мимо шторки (затемнение) - ничего не скроллим.
+      if (!e.target.closest(".modal")) { e.preventDefault(); return; }
+      if (!drag) return;
+      const t = e.touches[0];
+      const dy = t.clientY - drag.y0;
+      if (!drag.mode) {
+        if (Math.abs(dy) < 4) return;
+        drag.mode = dy > 0 && sheet.scrollTop <= 0 && !drag.skip ? "drag" : "scroll";
+        if (drag.mode === "drag") sheet.style.transition = "none";
+      }
+      if (drag.mode === "drag") {
+        e.preventDefault();
+        drag.off = Math.max(0, dy);
+        const dt = e.timeStamp - drag.t;
+        if (dt > 0) drag.v = (t.clientY - drag.y) / dt;
+        drag.y = t.clientY; drag.t = e.timeStamp;
+        sheet.style.transform = `translateY(${drag.off}px)`;
+        el.style.opacity = String(1 - Math.min(0.6, (drag.off / (sheet.offsetHeight || 1)) * 0.6));
+      } else if (sheet.scrollHeight <= sheet.clientHeight + 1) {
+        // Шторка короче экрана: без этого iOS потянул бы страницу под ней.
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    const end = (e) => {
+      const d = drag; drag = null;
+      if (!d || d.mode !== "drag") return;
+      const dismiss = e.type !== "touchcancel" && (d.off > 110 || (d.v > 0.6 && d.off > 24));
+      if (dismiss) {
+        sheet.style.transition = `transform ${SHEET_MS}ms ease-in`;
+        el.style.transition = `opacity ${SHEET_MS}ms ease-in`;
+        sheet.style.transform = "translateY(100%)";
+        el.style.opacity = "0";
+        window.clearTimeout(el._sheetTimer);
+        el._sheetTimer = window.setTimeout(() => closeSheet(el, { instant: true }), SHEET_MS);
+      } else {
+        sheet.style.transition = "transform 200ms ease-out";
+        sheet.style.transform = "translateY(0)";
+        el.style.opacity = "";
+        window.setTimeout(() => { if (!drag) { sheet.style.transition = ""; sheet.style.transform = ""; } }, 220);
+      }
+    };
+    el.addEventListener("touchend", end);
+    el.addEventListener("touchcancel", end);
+  });
 })();
