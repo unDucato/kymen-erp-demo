@@ -891,24 +891,14 @@ html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   transition: background-color .3s ease, color .3s ease, border-color .3s ease, box-shadow .3s ease !important;
 }
 
-/* Custom scrollbar: ONLY for devices with a mouse.
-   On touch devices styling ::-webkit-scrollbar turns overlay scrollbars into
-   classic ones and reserves a 12px strip, so we leave them native there. */
 @media (hover: hover) and (pointer: fine) {
-  /* УБРАНО: html { overflow-y: scroll; } */
-  
-  /* html { scrollbar-gutter: stable; }
-  html::-webkit-scrollbar-track,
-  html::-webkit-scrollbar-corner { background: transparent; } */
 
-  html { scrollbar-width: none; }          /* Firefox + новый Chrome */
-  html::-webkit-scrollbar { display: none; } /* Safari / старый Chrome */
+  html { scrollbar-width: none; }          
+  html::-webkit-scrollbar { display: none; } 
 
   *::-webkit-scrollbar { width: 12px; height: 12px; }
   *::-webkit-scrollbar-track { background: transparent; }
   *::-webkit-scrollbar-corner { background: transparent; }
-
-  /* УБРАНО: html::-webkit-scrollbar-track / corner с var(--bg) */
 
   *::-webkit-scrollbar-thumb {
     background-color: var(--scroll-thumb);
@@ -922,7 +912,7 @@ html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
 
   @supports (-moz-appearance: none) {
     * { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
-    /* УБРАНО: html { scrollbar-color: ... var(--bg); } */
+
   }
 }
 
@@ -931,9 +921,6 @@ html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   .view-toggle { grid-column: 1 / -1; order: 3; justify-self: center; }
 }
 
-/* ==========================================================
-   MOBILE / TOUCH
-   ========================================================== */
 @media (hover: none) {
   .machine-card:hover { transform: none; }
   .sos-btn:hover { transform: none; }
@@ -959,7 +946,6 @@ html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
     padding-bottom: max(40px, env(safe-area-inset-bottom));
   }
 
-  /* header */
   .topbar { padding: 12px; gap: 12px; border-radius: 14px; }
   .brand { min-width: 0; }
   .brand-mark { width: 38px; height: 38px; flex: 0 0 38px; font-size: 16px; }
@@ -972,14 +958,12 @@ html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   .prefs { order: 1; }
   .session-copy { order: 2; }
 
-  /* page heads */
   .page-head { margin: 20px 0 16px; gap: 14px; align-items: stretch; }
   .page-head h2 { font-size: 22px; line-height: 1.2; }
   .lede, .panel-sub { font-size: 13px; }
   .sos-btn { width: 100%; justify-content: center; padding: 15px 18px; }
   .period-pill { align-self: flex-start; }
 
-  /* sub tabs scroll horizontally instead of overflowing */
   .subtabs {
     overflow-x: auto;
     flex-wrap: nowrap;
@@ -993,7 +977,6 @@ html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   .subtabs::-webkit-scrollbar { display: none; }
   .subtab { flex: 0 0 auto; white-space: nowrap; padding: 12px 12px; }
 
-  /* panels, cards, kpi */
   .panel { padding: 14px; border-radius: 14px; margin-bottom: 14px; }
   .panel-head { flex-wrap: wrap; margin-bottom: 14px; }
   .panel-head > * { min-width: 0; }
@@ -1007,7 +990,6 @@ html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   .delta { margin-top: 6px; }
   .chart-wrap { height: 220px; }
 
-  /* tables -> stacked cards (labels are filled from <th> in app.js) */
   .table-wrap { overflow: visible; }
   .data-table,
   .data-table tbody,
@@ -1054,7 +1036,6 @@ html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   }
   .row-actions { flex-wrap: wrap; white-space: normal; }
 
-  /* ERP sidebar -> compact scrolling pills */
   .sidebar { padding: 6px; gap: 4px; border-radius: 14px; margin-bottom: 4px; }
   .erp-layout { gap: 12px; margin-top: 14px; }
   .side-btn { padding: 10px 12px; column-gap: 8px; grid-template-columns: 18px auto auto; }
@@ -1063,7 +1044,6 @@ html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   .soon h3 { font-size: 20px; }
   .soon-pill { text-align: left; }
 
-  /* modals -> bottom sheets */
   .modal-backdrop { padding: 0; place-items: end center; }
   .modal {
     width: 100%;
@@ -1088,7 +1068,6 @@ html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   .pp-stat strong.big { font-size: 28px; }
   .repairs li { padding: 10px 12px; gap: 10px; }
 
-  /* 16px inputs stop iOS from zooming on focus; bigger touch targets */
   select, textarea { font-size: 16px; }
   .upload-zone { padding: 18px 12px; }
   .icon-btn { width: 38px; height: 38px; }
@@ -1111,3 +1090,10 @@ html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after {
   .pp-grid { grid-template-columns: 1fr 1fr; }
   .pp-stat span { font-size: 11px; }
 }
+
+/* Блокировка прокрутки фона, пока открыта шторка (класс ставит app.js) */
+html.modal-open,
+html.modal-open body { overflow: hidden; }
+html.modal-open body { padding-right: var(--scrollbar-w, 0px); }
+.modal-backdrop,
+.modal { overscroll-behavior: contain; }

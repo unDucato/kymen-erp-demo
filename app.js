@@ -487,7 +487,7 @@ els.roiBody.addEventListener("click", (e) => {
 });
 
 function labelTables() {
-  // mobile card layout: copy (already translated) <th> text into each cell's data-label
+
   document.querySelectorAll(".data-table").forEach((table) => {
     const heads = [...table.querySelectorAll("thead th")].map((th) => th.textContent.trim());
     table.querySelectorAll("tbody tr").forEach((tr) =>
@@ -517,3 +517,18 @@ P.onChange(() => {
   }
 });
 
+// Пока открыта любая шторка (SOS, паспорт техники), фон под ней не скроллится.
+(function lockScrollWhileModalOpen() {
+  const root = document.documentElement;
+  const backdrops = document.querySelectorAll(".modal-backdrop");
+  const sync = () => {
+    const open = [...backdrops].some((b) => b.classList.contains("is-open") && !b.hidden);
+    if (open === root.classList.contains("modal-open")) return;
+    // На ПК полоса прокрутки пропадает - компенсируем ширину, чтобы страница не дёргалась.
+    if (open) root.style.setProperty("--scrollbar-w", `${window.innerWidth - root.clientWidth}px`);
+    root.classList.toggle("modal-open", open);
+  };
+  const observer = new MutationObserver(sync);
+  backdrops.forEach((b) => observer.observe(b, { attributes: true, attributeFilter: ["class", "hidden"] }));
+  sync();
+})();
